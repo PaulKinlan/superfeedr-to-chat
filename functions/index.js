@@ -26,7 +26,7 @@ app.use(cors({ origin: true }));
 app.post('/', (req, res) => {
   const { webhook_url } = req.query;
   const { body } = req;
-
+  
   console.log(body);
 
   if (body.items === undefined || body.items.length === 0) {
@@ -34,13 +34,16 @@ app.post('/', (req, res) => {
     return;
   }
 
+  const item = body.items[0];
+  const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : "Unknown";
+
   fetch(webhook_url, {
     method: 'POST',
     headers: {
       "Content-Type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
-      "text": `*${body.title}* published <${body.items[0].permalinkUrl}|${body.items[0].title}>. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
+      "text": `*${body.title}* published <${item.permalinkUrl}|${item.title}> by ${actor}. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
     })  
   }).then(() => {
     return res.send('ok');
