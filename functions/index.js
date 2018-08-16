@@ -35,7 +35,7 @@ app.post('/', (req, res) => {
   }
 
   const item = body.items[0];
-  const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : "Unknown";
+  const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : body.title;
 
   fetch(webhook_url, {
     method: 'POST',
@@ -43,7 +43,7 @@ app.post('/', (req, res) => {
       "Content-Type": "application/json; charset=utf-8",
     },
     body: JSON.stringify({
-      "text": `*${body.title}* published <${item.permalinkUrl}|${item.title}> by ${actor}. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
+      "text": `*${actor}* published <${item.permalinkUrl}|${item.title}>. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
     })  
   }).then(() => {
     return res.send('ok');
