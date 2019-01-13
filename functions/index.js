@@ -36,6 +36,9 @@ app.post('/', (req, res) => {
 
   const item = body.items[0];
   const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : body.title;
+  const content = item.content || body.content;
+
+  if (content.length < 150) return;
 
   fetch(webhook_url, {
     method: 'POST',
