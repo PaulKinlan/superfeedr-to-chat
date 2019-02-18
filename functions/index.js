@@ -23,7 +23,7 @@ const app = express();
 // Automatically allow cross-origin requests
 app.use(cors({ origin: true }));
 
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
   const { webhook_url } = req.query;
   const { body } = req;
   
@@ -34,26 +34,32 @@ app.post('/', (req, res) => {
     return;
   }
 
-  const item = body.items[0];
-  const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : body.title;
-  const content = item.content || body.content;
+  for(let item of body.items) {
+    const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : body.title;
+    const content = item.content || body.content;
 
-  if (content === undefined) return;
-  if (content.length < 500) return;
+    if (content !== undefined && content.length < 500) { 
+      console.warning('Not much content', content);
+      continue;
+    }
 
-  fetch(webhook_url, {
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-    },
-    body: JSON.stringify({
-      "text": `*${actor}* published <${item.permalinkUrl}|${item.title}>. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
-    })  
-  }).then(() => {
-    return res.send('ok');
-  }).catch(() => {
-    return res.send('error')
-  });
+    try {
+      await fetch(webhook_url, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+        body: JSON.stringify({
+          "text": `*${actor}* published <${item.permalinkUrl}|${item.title}>. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
+        })
+      });
+    } catch (ex) {
+      // If there is an error, just kill it all.
+      return res.send('error', ex)
+    }
+  }
+
+  return res.send('ok');
 })
 // Expose Express API as a single Cloud Function:
 exports.publish = functions.https.onRequest(app);
