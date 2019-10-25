@@ -38,11 +38,6 @@ app.post('/', async (req, res) => {
     const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : body.title;
     const content = item.content || body.content;
 
-    if (content !== undefined && content.length < 500) { 
-      console.warn('Not much content', content);
-      continue;
-    }
-
     try {
       await fetch(webhook_url, {
         method: 'POST',
