@@ -39,7 +39,7 @@ app.post('/', async (req, res) => {
     const content = item.content || body.content;
 
     if (content !== undefined && content.length < 500) { 
-      console.warning('Not much content', content);
+      console.warn('Not much content', content);
       continue;
     }
 
