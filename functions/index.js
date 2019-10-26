@@ -35,17 +35,24 @@ app.post('/', async (req, res) => {
   }
 
   for(let item of body.items) {
+    const {id, permalinkUrl, title} = item;
     const actor = (item.actor && item.actor.displayName) ? item.actor.displayName : body.title;
-    const content = item.content || body.content;
-
+    let body = "";
     try {
+
+      if (id.startsWith("https://news.ycombinator.com")) {
+        body = `<${permalinkUrl}|${title}> is on HN. Please keep an eye on the <${id}|comments>.`
+      } else {
+        body = `*${actor}* published <${permalinkUrl}|${title}>. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(permalinkUrl)}&text=${encodeURIComponent(title)}|Sharing it>.`
+      }
+
       await fetch(webhook_url, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json; charset=utf-8",
         },
         body: JSON.stringify({
-          "text": `*${actor}* published <${item.permalinkUrl}|${item.title}>. Please consider <https://twitter.com/intent/tweet?url=${encodeURIComponent(body.items[0].permalinkUrl)}&text=${encodeURIComponent(body.items[0].title)}|Sharing it>.`
+          text: body
         })
       });
     } catch (ex) {
